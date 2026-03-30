@@ -9,7 +9,7 @@ This folder implements the **university timetable** problem from the planning do
 | **DFS** | `search_algorithms.py` → `depth_first_search` |
 | **Uniform Cost Search (UCS)** | `search_algorithms.py` → `uniform_cost_search` |
 | **Greedy Best-First** (uses **h₂**) | `search_algorithms.py` → `greedy_best_first` |
-| **A\*** with **h₁** and **h₂** | `search_algorithms.py` → `a_star_search` (via `run_all`) |
+| **A\*** with **h₁** and **h₂** | `search_algorithms.py` → `a_star_search` (CLI: `--algo astar_h1` / `astar_h2`, or `--algo all`) |
 | **Heuristic h₁** (remaining courses) | `heuristics.py` → `h1_remaining_courses` |
 | **Heuristic h₂** (h₁ + relaxed preference lower bound) | `heuristics.py` → `h2_relaxed_penalty` |
 | **Soft costs** | `penalties.py` |
@@ -32,26 +32,57 @@ pip install -r requirements.txt
 
 ## Run
 
+From this folder (`Code/`), with the virtualenv activated:
+
 ```bash
 python main.py
 ```
 
-Optional flags:
+Defaults: `--instance small`, `--algo all`, `--max-expansions 500000`, `--out output`.
+
+### Flags
+
+| Flag | Values | Meaning |
+|------|--------|--------|
+| `--instance` | `small` (default), `eight`, `medium` | Problem size: 5 / 8 / 16 courses. |
+| `--algo` | `all` (default), `dfs`, `ucs`, `greedy_h2`, `astar_h1`, `astar_h2` | Run every algorithm, or only one. |
+| `--max-expansions` | integer (default `500000`) | Stop each search after this many **state expansions** (no goal ⇒ algorithm hit the cap or exhausted search). |
+| `--out` | directory path (default `output`) | Where PNG figures are written. |
+
+- **`--instance small`**: 5 courses, 3 rooms, 9 slots — good for running **`--algo all`**.
+- **`--instance eight`**: 8 courses — DFS is often still fine; UCS / A* may need a **larger** `--max-expansions`.
+- **`--instance medium`**: 16 courses — very hard; prefer **`--algo`** with a **single** algorithm and tune `--max-expansions`.
+
+### Example commands
+
+Run all algorithms on the small instance (writes `compare_expansions.png` plus per-algorithm plots):
 
 ```bash
-python main.py --instance small --max-expansions 500000 --out output
+python main.py --instance small --algo all --max-expansions 500000 --out output
 ```
 
-- **`--instance small`** (default): 5 courses, 3 rooms, 9 slots — fast for UCS, A*, and all plots.
-- **`--instance eight`**: 8 courses, 4 rooms, 12 slots — DFS is quick; UCS/A\* often need a large `--max-expansions`.
-- **`--instance medium`**: 16 courses — very hard; increase `--max-expansions` or expect timeouts.
+Run only one algorithm (no `compare_expansions.png`; trace / heuristic / timetable still produced for that run):
 
-Outputs under `output/` (or your `--out` path):
+```bash
+python main.py --instance medium --algo ucs --max-expansions 500000 --out output_ucs
+python main.py --instance medium --algo astar_h2 --max-expansions 500000 --out output_astar_h2
+python main.py --instance eight --algo dfs --max-expansions 500000 --out output_dfs
+python main.py --instance small --algo greedy_h2 --max-expansions 500000 --out output_greedy_h2
+python main.py --instance small --algo astar_h1 --max-expansions 500000 --out output_astar_h1
+```
 
-- `compare_expansions.png` — nodes expanded per method.
-- `trace_<algorithm>.png` — depth and **g** vs expansion index (search process).
-- `heuristic_<algorithm>.png` — **h** (and **f** where applicable) vs expansion.
-- `timetable_<algorithm>.png` — final grid (timeslots × rooms) when a goal was found.
+Quick default (same as `python main.py`):
+
+```bash
+python main.py --instance small --algo all --out output
+```
+
+### Outputs (under `--out`)
+
+- `compare_expansions.png` — only when **`--algo all`** (bar chart of nodes expanded per method).
+- `trace_<name>.png` — depth and **g** vs expansion index (`<name>` matches `--algo` key, e.g. `dfs`, `ucs`, `greedy_h2`, `astar_h1`, `astar_h2`).
+- `heuristic_<name>.png` — **h** (and **f** where applicable) vs expansion when traced.
+- `timetable_<name>.png` — final grid (timeslots × rooms) when a goal was found.
 
 ## Programmatic use
 
