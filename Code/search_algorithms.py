@@ -265,3 +265,49 @@ def run_all(
             problem, h2_relaxed_penalty, max_expansions, max_trace_steps
         ),
     }
+
+
+def run_selected(
+    problem: TimetableProblem,
+    algorithm: str,
+    max_expansions: int = 500_000,
+    max_trace_steps: int = 5_000,
+) -> Dict[str, SearchResult]:
+    """Run one selected algorithm or all (same keys as run_all)."""
+    if algorithm == "all":
+        return run_all(problem, max_expansions=max_expansions, max_trace_steps=max_trace_steps)
+
+    clear_penalty_cache()
+    clear_heuristic_cache()
+
+    if algorithm == "dfs":
+        return {
+            "dfs": depth_first_search(
+                problem, max_expansions, max_trace_steps, h_trace=h2_relaxed_penalty
+            )
+        }
+    if algorithm == "ucs":
+        return {
+            "ucs": uniform_cost_search(
+                problem, max_expansions, max_trace_steps, h_trace=h2_relaxed_penalty
+            )
+        }
+    if algorithm == "greedy_h2":
+        return {
+            "greedy_h2": greedy_best_first(
+                problem, h2_relaxed_penalty, max_expansions, max_trace_steps
+            )
+        }
+    if algorithm == "astar_h1":
+        return {
+            "astar_h1": a_star_search(
+                problem, h1_remaining_courses, max_expansions, max_trace_steps
+            )
+        }
+    if algorithm == "astar_h2":
+        return {
+            "astar_h2": a_star_search(
+                problem, h2_relaxed_penalty, max_expansions, max_trace_steps
+            )
+        }
+    raise ValueError(f"Unknown algorithm: {algorithm}")

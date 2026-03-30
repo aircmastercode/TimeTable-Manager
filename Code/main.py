@@ -9,7 +9,7 @@ import os
 import sys
 
 from timetable_problem import build_demo_eight, build_demo_medium, build_demo_small
-from search_algorithms import run_all
+from search_algorithms import run_selected
 from visualize import (
     ensure_out_dir,
     plot_algorithm_comparison,
@@ -29,6 +29,12 @@ def main() -> int:
     )
     p.add_argument("--max-expansions", type=int, default=500_000)
     p.add_argument("--out", default="output", help="Directory for PNG figures")
+    p.add_argument(
+        "--algo",
+        choices=("all", "dfs", "ucs", "greedy_h2", "astar_h1", "astar_h2"),
+        default="all",
+        help="Algorithm to run. Default runs all.",
+    )
     args = p.parse_args()
 
     if args.instance == "small":
@@ -40,7 +46,11 @@ def main() -> int:
     out = os.path.abspath(args.out)
     ensure_out_dir(out)
 
-    results = run_all(problem, max_expansions=args.max_expansions)
+    results = run_selected(
+        problem,
+        algorithm=args.algo,
+        max_expansions=args.max_expansions,
+    )
 
     summary_lines = []
     for name, res in results.items():
@@ -54,7 +64,8 @@ def main() -> int:
     print("Problem:", args.instance, "| courses:", len(problem.courses))
     print("\n".join(summary_lines))
 
-    plot_algorithm_comparison(results, os.path.join(out, "compare_expansions.png"))
+    if len(results) > 1:
+        plot_algorithm_comparison(results, os.path.join(out, "compare_expansions.png"))
 
     for name, res in results.items():
         if res.goal_state is not None:
